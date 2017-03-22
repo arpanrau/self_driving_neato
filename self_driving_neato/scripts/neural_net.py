@@ -4,7 +4,7 @@
 Does some stuff
 
 Questions we have:
-    - what the heck is a bias vector
+    - does this run once and does it most optimally for this dataset based on one run?
 '''
 Class NeuralNet(object):
 
@@ -34,6 +34,14 @@ Class NeuralNet(object):
     #COST FUNCTION
     J = np.sum((input_velocities-a_3)**2)/(2*num_images) #sum all the squared errors, then normalize by number of images (with a 1/2 due to the derivative later)
 
+    #BACK PROPAGATION (INCOMPLETE)
+    delta_3 = a_3 - input_velocities #difference between predicted and actual outputs
+    delta_2 = delta_3*theta_2[:,2:]*sigmoidGradient(z_2) #may not slice properly ¯\_(ツ)_/¯
+
+    #these don't make as much sense. come back and interpret better.
+    big_delta_1 = np.transpose(delta_2)*a_1
+    big_delta_2 = np.transpose(delta_3)*a_2
+    
 
 def get_rand_theta(in_size, out_size):
     random_epsilon = sqrt(6)/(sqrt(in_size+out_size))
@@ -43,3 +51,10 @@ def get_rand_theta(in_size, out_size):
 def sigmoid(matrix): #may not add/divide correctly. check matrix math.
     scaled_matrix = 1/(1+np.exp(-matrix))
         return scaled_matrix
+
+def sigmoidGradient(matrix):
+    g = np.zeros(matrix.shape()) #may not work ¯\_(ツ)_/¯
+    #inverse of sigmoid is sigmoid*(1-sigmoid)
+    g_z = sigmoid(matrix)
+    g = g_z*(1-g_z)
+    return g
