@@ -63,3 +63,4 @@ if __name__ == '__main__':
 	bp.get_imgs('../bags/longer-straightest-line.bag')
 	print np.shape(bp.all_imgs_array)
 	print np.shape(bp.all_vel_array)
+	np.savez('longer-straightest-line', images_matrix=bp.all_imgs_array, input_velocities=bp.all_vel_array)

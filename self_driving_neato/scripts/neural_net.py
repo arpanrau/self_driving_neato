@@ -20,6 +20,12 @@ class NeuralNet(object):
         self.images_matrix = np.zeros((self.num_images,self.img_size))
         self.input_velocities = np.zeros((self.num_images, self.output_size))
         
+    def init_with_bag(self, images_matrix, input_velocities):
+        pass
+        self.images_matrix = images_matrix
+        self.input_velocities = input_velocities
+        (self.num_images, self.img_size) = np.shape(images_matrix)
+
     def feed_forward_and_back_prop(self):
         #FEED FORWARD NETWORK
         theta_1 = self.get_rand_theta(self.img_size, self.hidden_layer_size)
@@ -71,7 +77,9 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
+    npzfile = np.load('longer-straightest-line.npz')
     nn = NeuralNet()
+    nn.init_with_bag(npzfile['images_matrix'], npzfile['input_velocities'])
     cost, theta_1_grad, theta_2_grad = nn.feed_forward_and_back_prop()
     print cost
     print np.shape(theta_1_grad), np.shape(theta_2_grad)
