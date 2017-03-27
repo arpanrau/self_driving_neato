@@ -112,5 +112,5 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
-    nn = NeuralNet(learning_rate=.5) #initialize neural net.
+    nn = NeuralNet(learning_rate=.9) #initialize neural net.
     nn.optimize_net(iterations=50) #optimize net through 50 iterations.
