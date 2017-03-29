@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 '''Neural Net
-Does some stuff
+Initializes a neural net and optimizes it over some number of iterations defined by the user.
+Implemented fully from scratch.
 
-Questions we have:
-    - does this run once and does it most optimally for this dataset based on one run?
+Inputs: Still needs integration with image/velocity inputs once we have a full dataset.
+Outputs: graph of cost over iterations. Still needs integration with accuracy validation from testing
+    (and possibly real-time output velocities if we want to drive a neato from this).
 '''
 
 import numpy as np
@@ -30,6 +32,7 @@ class NeuralNet(object):
         self.output_size = 2     #width of output layer
         # self.images_matrix = np.zeros((self.num_images,self.img_size))
         # self.input_velocities = np.zeros((self.num_images, self.output_size))
+
         self.bias_vector = np.ones((self.num_images,1))
 
         #Updated every iteration:
@@ -39,7 +42,7 @@ class NeuralNet(object):
         self.theta_1_grad = 0.0
         self.theta_2_grad = 0.0
 
-    def optimize_net(self, iterations=50):
+    def optimize_net(self, iterations=10):
         start_time = time() #for timing purposes. Prints at end before showing the plot.
 
         cost_list = np.zeros((iterations,1))
@@ -63,7 +66,38 @@ class NeuralNet(object):
         plt.title('Cost over iterations. Learning rate: '+str(self.learning_rate)) #may not work with adding variable
         plt.show()
 
+    def test_net(self):
+        '''Test the net after optimizing. This function will take the optimized thetas
+        and a test set, then output accuracy of predicted velocities against test set velocities.'''
+        #FEED FORWARD
+        test_set_images = []
+        num_test_images = test_set.shape()[0] #number of rows in test set is number of images.
+        test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
+
+        a_1 = np.concatenate((test_bias, test_set_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
+
+        z_2 = np.dot(a_1, np.transpose(self.theta_1)) #unscaled second layer. multiplied a by theta (weights). num_images x hidden_layer_size
+        z_2_scaled = self.sigmoid(z_2) #num_images x hidden_layer_size
+        a_2 = np.concatenate((self.bias_vector, z_2_scaled), axis=1) #num_images x hidden_layer_size+1
+
+        z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
+        a_3 = self.sigmoid(z_3) #num_images x output_size
+
+        #Mean absolute percentage error to find accuracy
+        #TODO: This may not work because some of our values are zero. Find a different measure of accuracy.
+        something = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
+        accuracy = 100/num_test_images*np.sum(something)
+
+        print accuracy
+
+
+
     def feed_forward_and_back_prop(self):
+        '''With one call of this function, goes through an iteration of
+        feedforward calculation of theoretical velocity outputs, calculates costs,
+        then backpropagates to reach better values for theta.
+        Gets called many times in optimize_net().
+        '''
         #FEED FORWARD NETWORK
         a_1 = np.concatenate((self.bias_vector, self.images_matrix), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
@@ -77,7 +111,7 @@ class NeuralNet(object):
         #COST FUNCTION
         self.cost = np.sum((self.input_velocities-a_3)**2)/(2*self.num_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
 
-        #BACK PROPAGATION (INCOMPLETE)
+        #BACK PROPAGATION
         delta_3 = np.subtract(a_3, self.input_velocities) #difference between predicted and actual outputs
         a = np.dot(delta_3, self.theta_2)
         b = np.concatenate((self.bias_vector, self.sigmoidGradient(z_2)), axis=1)
@@ -116,6 +150,7 @@ class NeuralNet(object):
 
 if __name__ == '__main__':
     npzfile = np.load('longer-straightest-line.npz')
-    nn = NeuralNet(learning_rate=.3, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
-    nn.optimize_net(iterations=50) #optimize net through 50 iterations.
-
+    nn = NeuralNet(learning_rate=.9, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
+    nn.optimize_net(iterations=10) #optimize net through 10 iterations.
+    
+    nn.test_net()
