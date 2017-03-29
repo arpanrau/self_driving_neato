@@ -18,17 +18,21 @@ from time import time
 
 class NeuralNet(object):
 
-    def __init__(self, learning_rate=.5):
+    def __init__(self, images_matrix, input_velocities, learning_rate=.5):
         #Defined for now because we don't have actual images
-        self.img_size = 100  #number of pixels in image.
-        self.num_images = 5000 #number of images we're feeding into the system
+        # self.img_size = 100  #number of pixels in image.
+        # self.num_images = 5000 #number of images we're feeding into the system
+        self.images_matrix = images_matrix
+        self.input_velocities = input_velocities
+        (self.num_images, self.img_size) = np.shape(images_matrix)
         self.learning_rate = learning_rate
 
         #Initialized once at creation of net:
         self.hidden_layer_size = 25  #width of a layer.
         self.output_size = 2     #width of output layer
-        self.images_matrix = np.zeros((self.num_images,self.img_size))
-        self.input_velocities = np.zeros((self.num_images, self.output_size)) #Currently a matrix of zeros because we don't have actual images or velocities
+        # self.images_matrix = np.zeros((self.num_images,self.img_size))
+        # self.input_velocities = np.zeros((self.num_images, self.output_size))
+
         self.bias_vector = np.ones((self.num_images,1))
 
         #Updated every iteration:
@@ -145,7 +149,8 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
-    nn = NeuralNet(learning_rate=.9) #initialize neural net.
-    nn.optimize_net(iterations=10) #optimize net through 50 iterations.
-
+    npzfile = np.load('longer-straightest-line.npz')
+    nn = NeuralNet(learning_rate=.9, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
+    nn.optimize_net(iterations=10) #optimize net through 10 iterations.
+    
     nn.test_net()
