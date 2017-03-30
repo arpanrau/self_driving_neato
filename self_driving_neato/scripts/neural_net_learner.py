@@ -1,3 +1,0 @@
-'''Simple Neural Net Learner
-'''
-
