@@ -14,10 +14,10 @@ import cv2
 
 class BagProcessor(object):
 
-	def __init__(self, init_vel=[0.0,0.0]):
+	def __init__(self):
 		self.all_imgs_array = None
 		self.all_vel_array = None
-		self.latest_vel = np.matrix(init_vel)
+		self.latest_vel = np.matrix([0.5,0])
 
 	def img_msg_to_array(self, img_msg):
 		'''
@@ -60,7 +60,7 @@ class BagProcessor(object):
 
 if __name__ == '__main__':
 	bp = BagProcessor()
-	bp.get_imgs('../bags/straightest-line.bag')
+	bp.get_imgs('../bags/longer-straightest-line.bag')
 	print np.shape(bp.all_imgs_array)
 	print np.shape(bp.all_vel_array)
-	np.savez('straightest-line', images_matrix=bp.all_imgs_array, input_velocities=bp.all_vel_array)
+	np.savez('longer-straightest-line', images_matrix=bp.all_imgs_array, input_velocities=bp.all_vel_array)
