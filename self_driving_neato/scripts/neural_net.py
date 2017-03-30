@@ -66,28 +66,27 @@ class NeuralNet(object):
         plt.title('Cost over iterations. Learning rate: '+str(self.learning_rate)) #may not work with adding variable
         plt.show()
 
-    def test_net(self, test_set):
+    def test_net(self, test_images=[], test_velocities=[]):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
         #FEED FORWARD
-        num_test_images = test_set.shape()[0] #number of rows in test set is number of images.
+        num_test_images = test_images.shape()[0] #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
 
-        a_1 = np.concatenate((test_bias, test_set_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
+        a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
         z_2 = np.dot(a_1, np.transpose(self.theta_1)) #unscaled second layer. multiplied a by theta (weights). num_images x hidden_layer_size
         z_2_scaled = self.sigmoid(z_2) #num_images x hidden_layer_size
-        a_2 = np.concatenate((self.bias_vector, z_2_scaled), axis=1) #num_images x hidden_layer_size+1
+        a_2 = np.concatenate((test_bias, z_2_scaled), axis=1) #num_images x hidden_layer_size+1
 
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
 
-        #Mean absolute percentage error to find accuracy
-        #TODO: This may not work because some of our values are zero. Find a different measure of accuracy.
-        mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
-        mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
+        #Mean absolute percentage error to find accuracy -- this actuallly doesn't work, because it would be dividing by zeros.
+        # mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
+        # mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
 
-        mse_accuracy = np.sum((test_set_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
+        mse_accuracy = np.sum((test_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
 
         print "Accuracy: ", mse_accuracy
 
@@ -154,4 +153,5 @@ if __name__ == '__main__':
     nn = NeuralNet(learning_rate=.9, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
     nn.optimize_net(iterations=10) #optimize net through 10 iterations.
 
-    nn.test_net()
+    testfile = np.load('straightest-line.npz')
+    nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
