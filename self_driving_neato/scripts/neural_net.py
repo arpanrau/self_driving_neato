@@ -62,11 +62,10 @@ class NeuralNet(object):
         plt.title('Cost over iterations. Learning rate: '+str(self.learning_rate)) #may not work with adding variable
         plt.show()
 
-    def test_net(self):
+    def test_net(self, test_set):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
         #FEED FORWARD
-        test_set_images = []
         num_test_images = test_set.shape()[0] #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
 
@@ -81,10 +80,12 @@ class NeuralNet(object):
 
         #Mean absolute percentage error to find accuracy
         #TODO: This may not work because some of our values are zero. Find a different measure of accuracy.
-        something = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
-        accuracy = 100/num_test_images*np.sum(something)
+        mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
+        mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
 
-        print accuracy
+        mse_accuracy = np.sum((test_set_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
+
+        print "Accuracy: ",mse_accuracy
 
 
 
@@ -148,4 +149,5 @@ if __name__ == '__main__':
     nn = NeuralNet(learning_rate=.9) #initialize neural net.
     nn.optimize_net(iterations=10) #optimize net through 50 iterations.
 
-    nn.test_net()
+    test_set = []
+    nn.test_net(test_set)
