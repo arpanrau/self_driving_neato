@@ -149,9 +149,15 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
-    npzfile = np.load('longer-straightest-line.npz')
+    inputfilename = raw_input("Filename me for bag bro: ")
+    testfilename = raw_input("Filename me for test bro: ")
+    print ("Im gonna save this shit as thetas bro")
+    npzfile = np.load(inputfilename)
     nn = NeuralNet(learning_rate=.5, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
     nn.optimize_net(iterations=10) #optimize net through 10 iterations.
 
-    testfile = np.load('straightest-line.npz')
+    testfile = np.load(testfilename)
     nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
+    
+    np.savez('thetas', theta_1=nn.theta_1, theta_2=nn.theta_2)
+

@@ -15,6 +15,8 @@ import termios
 import cv2
 import numpy as np
 import cPickle as pickle
+import thread
+from scipy import misc
 
 
 class Control_Robot():
@@ -117,9 +119,11 @@ class Control_Robot():
 
         #FEED FORWARD from test_net in neural_net.py
 
-     	test_set_images = self.last_img 
+        test_images = self.last_img
 
-		test_bias = np.ones((1,1)) #creating a bias vector for the test set.
+        print test_images
+        
+        test_bias = np.ones((1,1)) #creating a bias vector for the test set.
 
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
@@ -144,24 +148,24 @@ class Control_Robot():
 
     ##Helper Functions
 
-   	def img_msg_to_array(self, img_msg):
-		'''
-		Input: img message type
-		Output: flattened numpy array of the grayscale of that img
-		'''
-		np_arr = np.fromstring(img_msg.data, np.uint8)
-		image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-		gray_image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
-		# plt.imshow(img)
-		# plt.show()
-		reimg = misc.imresize(gray_image_np, 25) # Resizes image to 25% the original
+    def img_msg_to_array(self, img_msg):
+        '''
+        Input: img message type
+        Output: flattened numpy array of the grayscale of that img
+        '''
+        np_arr = np.fromstring(img_msg.data, np.uint8)
+        image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        gray_image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
+        # plt.imshow(img)
+        # plt.show()
+        reimg = misc.imresize(gray_image_np, 25) # Resizes image to 25% the original
 
-	 	flat_img = np.asmatrix(reimg).flatten()
+        flat_img = np.asmatrix(reimg).flatten()
 
-		self.last_img = flat_img
+        self.last_img = flat_img
 
 
-	def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
+    def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
         scaled_matrix = 1/(1+np.exp(-matrix))
         return scaled_matrix
 
