@@ -70,7 +70,7 @@ class NeuralNet(object):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
         #FEED FORWARD
-        num_test_images = test_images.shape()[0] #number of rows in test set is number of images.
+        (num_test_images, num_pixels) = test_images.shape #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
 
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
@@ -88,7 +88,7 @@ class NeuralNet(object):
 
         mse_accuracy = np.sum((test_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
 
-        print "Accuracy: ", mse_accuracy
+        print 'Accuracy: ', (1-mse_accuracy)*100, '%'
 
 
 
@@ -150,7 +150,7 @@ class NeuralNet(object):
 
 if __name__ == '__main__':
     npzfile = np.load('longer-straightest-line.npz')
-    nn = NeuralNet(learning_rate=.9, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
+    nn = NeuralNet(learning_rate=.5, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
     nn.optimize_net(iterations=10) #optimize net through 10 iterations.
 
     testfile = np.load('straightest-line.npz')
