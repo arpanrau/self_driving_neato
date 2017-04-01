@@ -60,7 +60,9 @@ class BagProcessor(object):
 
 if __name__ == '__main__':
 	bp = BagProcessor()
-	bp.get_imgs('../bags/longer-straightest-line.bag')
+	bag_location = raw_input("Filename me for input bro")
+	output_name = raw_input("Filename me for output bro")
+	bp.get_imgs('../bags/' + bag_location)
 	print np.shape(bp.all_imgs_array)
 	print np.shape(bp.all_vel_array)
-	np.savez('longer-straightest-line', images_matrix=bp.all_imgs_array, input_velocities=bp.all_vel_array)
+	np.savez(output_name, images_matrix=bp.all_imgs_array, input_velocities=bp.all_vel_array)
