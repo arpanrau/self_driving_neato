@@ -7,7 +7,7 @@
 '''
 
 from scipy import misc
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import rosbag
 import cv2
@@ -27,10 +27,23 @@ class BagProcessor(object):
 		np_arr = np.fromstring(img_msg.data, np.uint8)
 		image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 		gray_image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
-		# plt.imshow(img)
-		# plt.show()
+
 		reimg = misc.imresize(gray_image_np, 25) # Resizes image to 25% the original
-		return reimg
+		
+		# _, thresh_img = cv2.threshold(reimg,127,255,cv2.THRESH_BINARY)
+		# _, thresh_img_2 = cv2.threshold(reimg,220,255,cv2.THRESH_BINARY)
+		# _, thresh_img_3 = cv2.threshold(reimg,230,255,cv2.THRESH_BINARY)
+		#
+		# #plotting multiple things
+		# images = [reimg, thresh_img, thresh_img_2, thresh_img_3]
+		# titles = ['heat map resized', 'thresh 1', 'thresh 2', 'thresh 3']
+		# for i in range(len(images)):
+		# 	plt.subplot(2,3,i+1),plt.imshow(images[i])
+	    # 	plt.title(titles[i])
+		# plt.show()
+
+	 	_, thresh_img = cv2.threshold(reimg,230,255,cv2.THRESH_BINARY)
+		return thresh_img
 
 	def flatten_and_add(self, img_array):
 		'''
@@ -60,8 +73,14 @@ class BagProcessor(object):
 
 if __name__ == '__main__':
 	bp = BagProcessor()
-	bag_location = raw_input("Filename me for input bro")
-	output_name = raw_input("Filename me for output bro")
+	bag_location = raw_input("Filename for .bag input:\n")
+	output_name = raw_input("Filename for .npz output: \n")
+
+	if bag_location=='':
+		bag_location='linefollow1.bag'
+	if output_name=='':
+		output_name='laurentest1'
+
 	bp.get_imgs('../bags/' + bag_location)
 	print np.shape(bp.all_imgs_array)
 	print np.shape(bp.all_vel_array)

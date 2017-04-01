@@ -132,9 +132,9 @@ class Control_Robot():
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
 
-        
+
         print str(a_3)+'\r'
-        #Make Vector3 msg to send to robot from 
+        #Make Vector3 msg to send to robot from
 
 
         self.linearVector  = Vector3(x=a_3[0,0], y=0.0, z=0.0)
@@ -157,11 +157,9 @@ class Control_Robot():
         np_arr = np.fromstring(img_msg.data, np.uint8)
         image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         gray_image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
-        # plt.imshow(img)
-        # plt.show()
         reimg = misc.imresize(gray_image_np, 25) # Resizes image to 25% the original
-
-        flat_img = np.asmatrix(reimg).flatten()
+	 	_, thresh_img = cv2.threshold(reimg,230,255,cv2.THRESH_BINARY)
+        flat_img = np.asmatrix(thresh_img).flatten()
 
         self.last_img = flat_img
 
