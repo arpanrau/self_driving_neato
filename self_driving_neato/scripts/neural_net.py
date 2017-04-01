@@ -70,10 +70,18 @@ class NeuralNet(object):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
         #FEED FORWARD
+
         (num_test_images, num_pixels) = test_images.shape #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
-
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
+        print test_bias.shape, test_images.shape, test_velocities.shape
+
+        #Randomly generated
+        # test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
+        # test_images = self.get_rand_theta(num_pixels-1,num_test_images) #initialize to random thetas to start.
+        # test_velocities = self.get_rand_theta(2-1,num_test_images)
+        # print test_bias.shape, test_images.shape, test_velocities.shape
+        # a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
         z_2 = np.dot(a_1, np.transpose(self.theta_1)) #unscaled second layer. multiplied a by theta (weights). num_images x hidden_layer_size
         z_2_scaled = self.sigmoid(z_2) #num_images x hidden_layer_size
@@ -81,14 +89,21 @@ class NeuralNet(object):
 
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
+        print a_3
 
         #Mean absolute percentage error to find accuracy -- this actuallly doesn't work, because it would be dividing by zeros.
         # mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
         # mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
 
-        mse_accuracy = np.sum((test_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
+        linear_accuracy = np.sum((test_velocities[:][0]-a_3[:][0])**2)/(2*num_test_images)
+        angular_accuracy = np.sum((test_velocities[:][1]-a_3[:][1])**2)/(2*num_test_images)
+        print 'Linear Accuracy: ', (1-linear_accuracy)*100, '%'
+        print 'Angular Accuracy: ', (1-angular_accuracy)*100, '%'
+        print 'Mean Accuracy', (1-(linear_accuracy+angular_accuracy)/2)*100, '%'
 
-        print 'Accuracy: ', (1-mse_accuracy)*100, '%'
+        mse_accuracy = np.sum((test_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
+        #this may be wrong.
+        print 'Probably Incorrect \"Accuracy\": ', (1-mse_accuracy)*100, '%'
 
 
 
@@ -151,14 +166,27 @@ class NeuralNet(object):
 if __name__ == '__main__':
     inputfilename = raw_input("Path for NPZ file to Learn on :\n")
     testfilename = raw_input("Path for NPZ file to Test on :\n")
-    learning_rate= float(raw_input("Learning Rate :\n"))
-    print ("Saving Thetas as Thetas.npz")
+    learning_rate= raw_input("Learning Rate :\n")
+    iterations = raw_input("Iterations :\n")
+
+    #Default values.
+    if inputfilename=='':
+        inputfilename = 'linefollow1.npz'
+    if testfilename=='':
+        testfilename = 'linefollow2.npz'
+    if learning_rate=='':
+        learning_rate='.9'
+    if iterations=='':
+        iterations='10'
+
+    learning_rate=float(learning_rate)
+    iterations = int(iterations)
+    # print ("Saving Thetas as Thetas.npz")
     npzfile = np.load(inputfilename)
     nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
-    nn.optimize_net(iterations=10) #optimize net through 10 iterations.
+    nn.optimize_net(iterations=iterations) #optimize net through 10 iterations.
 
     testfile = np.load(testfilename)
     nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
-    
-    np.savez('thetas', theta_1=nn.theta_1, theta_2=nn.theta_2)
 
+    np.savez('thetas', theta_1=nn.theta_1, theta_2=nn.theta_2)
