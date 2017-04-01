@@ -121,7 +121,7 @@ class Control_Robot():
 
         test_images = self.last_img
 
-        test_bias = nkp.ones((1,1)) #creating a bias vector for the test set.
+        test_bias = np.ones((1,1)) #creating a bias vector for the test set.
 
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
