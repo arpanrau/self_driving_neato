@@ -122,7 +122,7 @@ class Control_Robot():
         test_images = self.last_img
 
         print test_images
-        
+
         test_bias = np.ones((1,1)) #creating a bias vector for the test set.
 
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
@@ -133,13 +133,14 @@ class Control_Robot():
 
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
-        
-        print a_3
-        #Make Vector3 msg to send to robot from 
 
-        #self.linearVector  = Vector3(x=a_3[0], y=0.0, z=0.0)
-        #self.angularVector = Vector3(x=0.0, y=0.0, z=a_3[1])
-        #self.sendMessage()
+        print a_3
+        #Make Vector3 msg to send to robot from
+
+        self.linearVector  = Vector3(x=a_3[0,0], y=0.0, z=0.0)
+
+        self.angularVector = Vector3(x=0.0, y=0.0, z=a_3[0,1])
+        self.sendMessage()
 
     def sendMessage(self):
         """ Publishes the Twist containing the linear and angular vector """
@@ -172,8 +173,8 @@ class Control_Robot():
     ##Main
 
     def run(self):
-        
-        while self.key != '\x03' and not rospy.is_shutdown(): 
+
+        while self.key != '\x03' and not rospy.is_shutdown():
             if self.key in self.acceptablekeys:
                 #if an acceptable keypress, do the action
                 self.state[self.key].__call__()
