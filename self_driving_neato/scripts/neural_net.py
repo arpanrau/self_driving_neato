@@ -149,11 +149,12 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
-    inputfilename = raw_input("Filename me for bag bro: ")
-    testfilename = raw_input("Filename me for test bro: ")
-    print ("Im gonna save this shit as thetas bro")
+    inputfilename = raw_input("Path for NPZ file to Learn on :\n")
+    testfilename = raw_input("Path for NPZ file to Test on :\n")
+    learning_rate= float(raw_input("Learning Rate :\n"))
+    print ("Saving Thetas as Thetas.npz")
     npzfile = np.load(inputfilename)
-    nn = NeuralNet(learning_rate=.5, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
+    nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
     nn.optimize_net(iterations=10) #optimize net through 10 iterations.
 
     testfile = np.load(testfilename)
