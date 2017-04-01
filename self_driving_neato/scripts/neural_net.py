@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from time import time
 from scipy import special
+from load_mnist import mnist
+from sklearn.metrics import accuracy_score
 
 class NeuralNet(object):
 
@@ -28,8 +30,8 @@ class NeuralNet(object):
         self.learning_rate = learning_rate
 
         #Initialized once at creation of net:
-        self.hidden_layer_size = 4  #width of a layer.
-        self.output_size = 2     #width of output layer
+        self.hidden_layer_size = 256  #width of a layer.
+        self.output_size = 10     #width of output layer
         # self.images_matrix = np.zeros((self.num_images,self.img_size))
         # self.input_velocities = np.zeros((self.num_images, self.output_size))
 
@@ -90,22 +92,12 @@ class NeuralNet(object):
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
         print a_3
+        print a_3.shape
 
-        #Mean absolute percentage error to find accuracy -- this actuallly doesn't work, because it would be dividing by zeros.
-        # mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
-        # mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
+        input_digits = np.argmax(a_3, axis=1)
+        actual_digits = np.argmax(test_velocities, axis=1)
 
-        linear_accuracy = np.sum((test_velocities[:][0]-a_3[:][0])**2)/(2*num_test_images)
-        angular_accuracy = np.sum((test_velocities[:][1]-a_3[:][1])**2)/(2*num_test_images)
-        print 'Linear Accuracy: ', (1-linear_accuracy)*100, '%'
-        print 'Angular Accuracy: ', (1-angular_accuracy)*100, '%'
-        print 'Mean Accuracy', (1-(linear_accuracy+angular_accuracy)/2)*100, '%'
-
-        mse_accuracy = np.sum((test_velocities-a_3)**2)/(2*num_test_images) #sum all the squared errors, then normalize by number of images (with a 1/2 to cancel out the derivative/sigmoid that's taken later)
-        #this may be wrong.
-        print 'Probably Incorrect \"Accuracy\": ', (1-mse_accuracy)*100, '%'
-
-
+        print "TEST ACCURACY", accuracy_score(input_digits, actual_digits)
 
     def feed_forward_and_back_prop(self):
         '''With one call of this function, goes through an iteration of
@@ -144,6 +136,11 @@ class NeuralNet(object):
         #calculate new theta vectors to use in next iteration.
         self.theta_1 -= self.learning_rate*self.theta_1_grad
         self.theta_2 -= self.learning_rate*self.theta_2_grad
+        
+        input_digits = np.argmax(a_3, axis=1)
+        actual_digits = np.argmax(self.input_velocities, axis=1)
+
+        print "TRAIN ACCURACY", accuracy_score(input_digits, actual_digits)
 
         return self.cost
 
@@ -165,29 +162,15 @@ class NeuralNet(object):
         return g
 
 if __name__ == '__main__':
-    inputfilename = raw_input("Path for NPZ file to Learn on :\n")
-    testfilename = raw_input("Path for NPZ file to Test on :\n")
-    learning_rate= raw_input("Learning Rate :\n")
-    iterations = raw_input("Iterations :\n")
+    trX,teX,trY,teY = mnist()
 
-    #Default values.
-    if inputfilename=='':
-        inputfilename = 'linefollow1.npz'
-    if testfilename=='':
-        testfilename = 'linefollow2.npz'
-    if learning_rate=='':
-        learning_rate='.9'
-    if iterations=='':
-        iterations='10'
+    print trX.shape, teX.shape, trY.shape, teY.shape
 
-    learning_rate=float(learning_rate)
-    iterations = int(iterations)
-    # print ("Saving Thetas as Thetas.npz")
-    npzfile = np.load(inputfilename)
-    nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
+    learning_rate=0.01
+    iterations = 100
+    
+    nn = NeuralNet(learning_rate=learning_rate, images_matrix=trX, input_velocities=trY) #initialize neural net.
     nn.optimize_net(iterations=iterations) #optimize net through 10 iterations.
     
-    testfile = np.load(testfilename)
-    nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
+    nn.test_net(test_images=teX, test_velocities=teY)
 
-    np.savez('thetas', theta_1=nn.theta_1, theta_2=nn.theta_2)
