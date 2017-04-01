@@ -14,7 +14,7 @@ from math import sqrt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from time import time
-
+from scipy import special
 
 class NeuralNet(object):
 
@@ -28,7 +28,7 @@ class NeuralNet(object):
         self.learning_rate = learning_rate
 
         #Initialized once at creation of net:
-        self.hidden_layer_size = 25  #width of a layer.
+        self.hidden_layer_size = 4  #width of a layer.
         self.output_size = 2     #width of output layer
         # self.images_matrix = np.zeros((self.num_images,self.img_size))
         # self.input_velocities = np.zeros((self.num_images, self.output_size))
@@ -42,7 +42,7 @@ class NeuralNet(object):
         self.theta_1_grad = 0.0
         self.theta_2_grad = 0.0
 
-    def optimize_net(self, iterations=10):
+    def optimize_net(self, iterations=100):
         start_time = time() #for timing purposes. Prints at end before showing the plot.
 
         cost_list = np.zeros((iterations,1))
@@ -138,7 +138,8 @@ class NeuralNet(object):
         return theta
 
     def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
-        scaled_matrix = 1/(1+np.exp(-matrix))
+        #scaled_matrix = 1/(1+np.exp(-matrix))
+        scaled_matrix = special.expit(matrix)
         return scaled_matrix
 
     def sigmoidGradient(self, matrix):
@@ -155,7 +156,7 @@ if __name__ == '__main__':
     print ("Saving Thetas as Thetas.npz")
     npzfile = np.load(inputfilename)
     nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
-    nn.optimize_net(iterations=10) #optimize net through 10 iterations.
+    nn.optimize_net(iterations=100) #optimize net through 10 iterations.
 
     testfile = np.load(testfilename)
     nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])

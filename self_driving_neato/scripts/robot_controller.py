@@ -121,7 +121,6 @@ class Control_Robot():
 
         test_images = self.last_img
 
-        print test_images
         
         test_bias = np.ones((1,1)) #creating a bias vector for the test set.
 
@@ -134,7 +133,7 @@ class Control_Robot():
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
         
-        print a_3
+        print str(a_3)+'\r'
         #Make Vector3 msg to send to robot from 
 
         #self.linearVector  = Vector3(x=a_3[0], y=0.0, z=0.0)
