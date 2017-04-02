@@ -61,12 +61,16 @@ class BagProcessor(object):
 			self.all_vel_array = np.matrix(self.latest_vel)
 
 	def get_imgs(self, bag_file):
+		'''
+		Input: Bag file with images and input_velocities
+		Goes through each msg to pull out images and input_velocities
+		And calls function to processes the images
+		'''
 		bag = rosbag.Bag(bag_file)
 		for topic, msg, t in bag.read_messages(topics=['/cmd_vel', '/camera/image_raw/compressed']):
 			if (topic=='/cmd_vel'):
 				self.latest_vel = np.matrix([msg.linear.x, msg.angular.z])
 			if (topic=='/camera/image_raw/compressed'):
-				"""CALL"""
 				img_array = self.img_msg_to_array(msg)
 				self.flatten_and_add(img_array)
 		bag.close()
@@ -79,7 +83,7 @@ if __name__ == '__main__':
 	if bag_location=='':
 		bag_location='linefollow1.bag'
 	if output_name=='':
-		output_name='laurentest1'
+		output_name='test1'
 
 	bp.get_imgs('../bags/' + bag_location)
 	print np.shape(bp.all_imgs_array)
