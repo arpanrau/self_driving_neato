@@ -1,3 +1,7 @@
+"""
+Code used from https://github.com/Newmu/Theano-Tutorials
+"""
+
 import numpy as np
 import os
 

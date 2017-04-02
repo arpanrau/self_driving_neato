@@ -21,26 +21,22 @@ from sklearn.metrics import accuracy_score
 class NeuralNet(object):
 
     def __init__(self, images_matrix, input_velocities, learning_rate=.5):
-        #Defined for now because we don't have actual images
-        # self.img_size = 100  #number of pixels in image.
-        # self.num_images = 5000 #number of images we're feeding into the system
         self.images_matrix = images_matrix
         self.input_velocities = input_velocities
         (self.num_images, self.img_size) = np.shape(images_matrix)
         self.learning_rate = learning_rate
 
-        #Initialized once at creation of net:
+        # Initialized once at creation of net:
         self.hidden_layer_size = 256  #width of a layer.
         self.output_size = 10     #width of output layer
-        # self.images_matrix = np.zeros((self.num_images,self.img_size))
-        # self.input_velocities = np.zeros((self.num_images, self.output_size))
-
+        
         self.bias_vector = np.ones((self.num_images,1))
 
         #Updated every iteration:
         self.theta_1 = self.get_rand_theta(self.img_size, self.hidden_layer_size) #initialize to random thetas to start.
         self.theta_2 = self.get_rand_theta(self.hidden_layer_size, self.output_size) #initialize to random thetas to start.
         self.cost = 0.0
+        self.accuracy = 0.0
         self.theta_1_grad = 0.0
         self.theta_2_grad = 0.0
 
@@ -48,11 +44,13 @@ class NeuralNet(object):
         start_time = time() #for timing purposes. Prints at end before showing the plot.
 
         cost_list = np.zeros((iterations,1))
+        accuracy_list = np.zeros((iterations,1))
 
         for i in range(iterations):
-            print "iteration: ",i, "\t \t cost: ",self.cost
-            _ = self.feed_forward_and_back_prop()
+            self.cost, self.accuracy = self.feed_forward_and_back_prop()
+            print "iteration: ",i, "\t \t cost: ",
             cost_list[i] = self.cost
+            accuracy_list[i] = self.accuracy
 
         #Time the optimization portion. since it does this in real time, this will include other things making your computer slow.
         print "--- NN Optimization time: %s seconds ---" % (time() - start_time)
@@ -68,6 +66,15 @@ class NeuralNet(object):
         plt.title('Cost over iterations. Learning rate: '+str(self.learning_rate)) #may not work with adding variable
         plt.show()
 
+        #Plot another data, yo
+        fig3 = plt.figure(3)
+        plt.plot(range(iterations),accuracy_list, 'b*-')
+        plt.grid(True)
+        plt.xlabel('iteration')
+        plt.ylabel('accuracy')
+        plt.title('Accuracy over iterations. Learning rate: '+str(self.learning_rate)) #may not work with adding variable
+        plt.show()
+
     def test_net(self, test_images=[], test_velocities=[]):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
@@ -78,7 +85,7 @@ class NeuralNet(object):
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
         print test_bias.shape, test_images.shape, test_velocities.shape
 
-        #Randomly generated
+        # Randomly generated
         # test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
         # test_images = self.get_rand_theta(num_pixels-1,num_test_images) #initialize to random thetas to start.
         # test_velocities = self.get_rand_theta(2-1,num_test_images)
@@ -142,35 +149,44 @@ class NeuralNet(object):
 
         print "TRAIN ACCURACY", accuracy_score(input_digits, actual_digits)
 
-        return self.cost
+        return self.cost, accuracy_score(input_digits, actual_digits)
 
     def get_rand_theta(self, in_size, out_size):
-        random_epsilon = sqrt(6)/(sqrt(in_size+out_size))
+        """
+        Initialize thetas according the size of adjacent layers
+        """
+        random_epsilon = sqrt(6)/(sqrt(in_size+out_size)) # Initialize it to very small non-zero numbers
+        # With the range (-epsilon, epsilon)
         theta = np.random.rand(out_size,(in_size+1))*2*random_epsilon - random_epsilon
         return theta
 
-    def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
-        #scaled_matrix = 1/(1+np.exp(-matrix))
+    def sigmoid(self, matrix):
+        """
+        Sigmoid activation fuction applied to each element of the matrix
+        """ 
         scaled_matrix = special.expit(matrix)
         return scaled_matrix
 
     def sigmoidGradient(self, matrix):
+        """
+        Inverse of sigmoid is sigmoid*(1-sigmoid) which is used to calculate gradient
+        """
         g = np.zeros(np.shape(matrix))
-        #inverse of sigmoid is sigmoid*(1-sigmoid)
         g_z = self.sigmoid(matrix)
         g = g_z*(1-g_z)
         return g
 
 if __name__ == '__main__':
+    # Load the MNIST data
     trX,teX,trY,teY = mnist()
 
+    # Making sure the shapes are what we expect them to be
     print trX.shape, teX.shape, trY.shape, teY.shape
 
     learning_rate=0.01
     iterations = 100
     
-    nn = NeuralNet(learning_rate=learning_rate, images_matrix=trX, input_velocities=trY) #initialize neural net.
-    nn.optimize_net(iterations=iterations) #optimize net through 10 iterations.
+    nn = NeuralNet(learning_rate=learning_rate, images_matrix=trX, input_velocities=trY) # Initialize neural net.
+    nn.optimize_net(iterations=iterations) # Optimize net through x iterations.
     
-    nn.test_net(test_images=teX, test_velocities=teY)
-
+    nn.test_net(test_images=teX, test_velocities=teY) # Test the neural net's accuracy
