@@ -1,6 +1,0 @@
-<launch>
-	<node pkg="rosbag" type="play" name="rosbag" args="-d 2 /home/shruti/catkin_ws/src/self_driving_neato/self_driving_neato/bags/longer-straightest-line.bag"/>
-	<node name="extract" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME" args="compressed">
-	<remap from="image" to="/camera/image_raw"/>
-	</node>
-</launch>
