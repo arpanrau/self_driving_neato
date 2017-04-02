@@ -19,9 +19,7 @@ from scipy import special
 class NeuralNet(object):
 
     def __init__(self, images_matrix, input_velocities, learning_rate=.5):
-        #Defined for now because we don't have actual images
-        # self.img_size = 100  #number of pixels in image.
-        # self.num_images = 5000 #number of images we're feeding into the system
+        #Set training values and sizes based on inputs:
         self.images_matrix = images_matrix
         self.input_velocities = input_velocities
         (self.num_images, self.img_size) = np.shape(images_matrix)
@@ -30,9 +28,6 @@ class NeuralNet(object):
         #Initialized once at creation of net:
         self.hidden_layer_size = 4  #width of a layer.
         self.output_size = 2     #width of output layer
-        # self.images_matrix = np.zeros((self.num_images,self.img_size))
-        # self.input_velocities = np.zeros((self.num_images, self.output_size))
-
         self.bias_vector = np.ones((self.num_images,1))
 
         #Updated every iteration:
@@ -70,18 +65,10 @@ class NeuralNet(object):
         '''Test the net after optimizing. This function will take the optimized thetas
         and a test set, then output accuracy of predicted velocities against test set velocities.'''
         #FEED FORWARD
-
         (num_test_images, num_pixels) = test_images.shape #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
         print test_bias.shape, test_images.shape, test_velocities.shape
-
-        #Randomly generated
-        # test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
-        # test_images = self.get_rand_theta(num_pixels-1,num_test_images) #initialize to random thetas to start.
-        # test_velocities = self.get_rand_theta(2-1,num_test_images)
-        # print test_bias.shape, test_images.shape, test_velocities.shape
-        # a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
         z_2 = np.dot(a_1, np.transpose(self.theta_1)) #unscaled second layer. multiplied a by theta (weights). num_images x hidden_layer_size
         z_2_scaled = self.sigmoid(z_2) #num_images x hidden_layer_size
@@ -89,12 +76,8 @@ class NeuralNet(object):
 
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
-        print a_3
 
-        #Mean absolute percentage error to find accuracy -- this actuallly doesn't work, because it would be dividing by zeros.
-        # mape_error_diff_vector = abs(np.divide(np.subtract(test_set_velocities - a_3),test_set_velocities)) #find absolute value of element-wise (actual - predicted)/actual
-        # mape_accuracy = 100/num_test_images*np.sum(error_diff_vector)
-
+        #ACCURACY FUNCTIONS
         linear_accuracy = np.sum((test_velocities[:][0]-a_3[:][0])**2)/(2*num_test_images)
         angular_accuracy = np.sum((test_velocities[:][1]-a_3[:][1])**2)/(2*num_test_images)
         print 'Linear Accuracy: ', (1-linear_accuracy)*100, '%'
@@ -152,8 +135,8 @@ class NeuralNet(object):
         theta = np.random.rand(out_size,(in_size+1))*2*random_epsilon - random_epsilon
         return theta
 
-    def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
-        #scaled_matrix = 1/(1+np.exp(-matrix))
+    def sigmoid(self, matrix):
+        #scaled_matrix = 1/(1+np.exp(-matrix)) #handmade sigmoid function, got overflow errors often so we switched to the scipy function.
         scaled_matrix = special.expit(matrix)
         return scaled_matrix
 
@@ -170,7 +153,7 @@ if __name__ == '__main__':
     learning_rate= raw_input("Learning Rate :\n")
     iterations = raw_input("Iterations :\n")
 
-    #Default values.
+    #Set default values, for if the user doesn't want to type filenames out every time and instead just hits enter.
     if inputfilename=='':
         inputfilename = 'linefollow1.npz'
     if testfilename=='':
@@ -186,7 +169,7 @@ if __name__ == '__main__':
     npzfile = np.load(inputfilename)
     nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
     nn.optimize_net(iterations=iterations) #optimize net through 10 iterations.
-    
+
     testfile = np.load(testfilename)
     nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
 
