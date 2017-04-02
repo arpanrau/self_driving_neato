@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""General robot controller. Add Keypress functions and key dictionary entries to add functionality"""
+"""Robot Controller with built - in Self Driving Neural Net. Reads Thetas produced by neural_net.py from file."""
 import rospy
 from sensor_msgs.msg import CompressedImage
 from neato_node.msg import Bump
@@ -17,6 +17,8 @@ import numpy as np
 import cPickle as pickle
 import thread
 from scipy import misc
+from scipy import special
+
 
 
 class Control_Robot():
@@ -26,17 +28,19 @@ class Control_Robot():
         rospy.init_node('robot_controller')
         self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
         self.sleepy = rospy.Rate(2)
-        #add subscribers for alternate control modes here
+        #subscribe to Compressedimage for neural net
         rospy.Subscriber('/camera/image_raw/compressed', CompressedImage, self.img_msg_to_array)
+        #Stop the robot on shutdown
         rospy.on_shutdown(self.stop)
+        #Start thread with just getkey
         thread.start_new_thread(self.getKey,())
-
         # make dictionary that calls functions for teleop
         self.state = {'i':self.forward, ',':self.backward,
                       'l':self.rightTurn, 'j':self.leftTurn,
                       'k':self.stop,'n':self.netdrive}
-        #modify this if you add any keys for alternative states
+        #Acceptable keys that won't just stop the robot
         self.acceptablekeys = ['i','l','k',',','j','n']
+        #Stops the robot on init just in case 
         self.linearVector = Vector3(x=0.0, y=0.0, z=0.0)
         self.angularVector = Vector3(x=0.0, y=0.0, z=0.0)
         self.sendMessage()
@@ -45,20 +49,6 @@ class Control_Robot():
         self.key = None
         #save last img
         self.last_img = None
-        #current location and orientation
-        self.currentx = 0.0
-        self.currenty = 0.0
-        self.orientation = 0.0
-        #proportional controller constants
-        self.kturn = .85
-        self.kspeed= .1
-        #location of person to be followed
-        self.personx = 0.0
-        self.persony = 0.0
-        #location of target for obstacle avoidance
-        self.clearx = 0.0
-        self.cleary = 0.0
-
         #path to thetas for Learner on Disk
         self.thetapath = 'thetas.npz'
         #load thetas
@@ -68,7 +58,7 @@ class Control_Robot():
 
 
     def getKey(self):
-        """ Interupt that gets a non interrupting keypress """
+        """ Interrupt that gets a non interrupting keypress """
         while not rospy.is_shutdown():
             tty.setraw(sys.stdin.fileno())
             select.select([sys.stdin], [], [], 0)
@@ -112,16 +102,17 @@ class Control_Robot():
         self.angularVector = Vector3(x=0.0, y=0.0, z=0.0)
         self.sendMessage()
 
-
     def netdrive(self):
         """ Sets the velocity as per neural net """
         #print('netdrive\r')
 
-        #FEED FORWARD from test_net in neural_net.py
-
+        #Feedforward from test_net in neural_net.py
+        
         test_images = self.last_img
+        print str(test_images)+'\r'
 
-        test_bias = nkp.ones((1,1)) #creating a bias vector for the test set.
+        test_bias = np.ones((1,1)) #creating a bias vector for the test set.
+
 
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
 
@@ -132,13 +123,9 @@ class Control_Robot():
         z_3 = np.dot(a_2, np.transpose(self.theta_2)) #num_images x output_size
         a_3 = self.sigmoid(z_3) #num_images x output_size
 
-
-        print str(a_3)+'\r'
         #Make Vector3 msg to send to robot from
 
-
         self.linearVector  = Vector3(x=a_3[0,0], y=0.0, z=0.0)
-
         self.angularVector = Vector3(x=0.0, y=0.0, z=a_3[0,1])
         self.sendMessage()
 
@@ -158,14 +145,15 @@ class Control_Robot():
         image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         gray_image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2GRAY)
         reimg = misc.imresize(gray_image_np, 25) # Resizes image to 25% the original
-	 	_, thresh_img = cv2.threshold(reimg,230,255,cv2.THRESH_BINARY)
+        _, thresh_img = cv2.threshold(reimg,230,255,cv2.THRESH_BINARY)
         flat_img = np.asmatrix(thresh_img).flatten()
 
         self.last_img = flat_img
 
 
-    def sigmoid(self, matrix): #may not add/divide correctly. check matrix math.
-        scaled_matrix = 1/(1+np.exp(-matrix))
+    def sigmoid(self, matrix): 
+        """Helper function that performs sigmoid on a matrix"""
+        scaled_matrix = special.expit(matrix)
         return scaled_matrix
 
     ##Main
