@@ -68,7 +68,6 @@ class NeuralNet(object):
         (num_test_images, num_pixels) = test_images.shape #number of rows in test set is number of images.
         test_bias = np.ones((num_test_images,1)) #creating a bias vector for the test set.
         a_1 = np.concatenate((test_bias, test_images), axis=1) #original image matrix with bias vector added as column. Now num_images x img_size+1 in size.
-        print test_bias.shape, test_images.shape, test_velocities.shape
 
         z_2 = np.dot(a_1, np.transpose(self.theta_1)) #unscaled second layer. multiplied a by theta (weights). num_images x hidden_layer_size
         z_2_scaled = self.sigmoid(z_2) #num_images x hidden_layer_size
@@ -116,7 +115,6 @@ class NeuralNet(object):
 
         delta_2 = np.multiply(a, b)[:,1:] #element-wise multiplication, then slicing of the bias vector.
 
-        #TODO: make sure we all understand this operation.
         big_delta_1 = np.dot(np.transpose(delta_2), a_1)
         big_delta_2 = np.dot(np.transpose(delta_3), a_2)
 
@@ -136,18 +134,20 @@ class NeuralNet(object):
         return theta
 
     def sigmoid(self, matrix):
-        #scaled_matrix = 1/(1+np.exp(-matrix)) #handmade sigmoid function, got overflow errors often so we switched to the scipy function.
-        scaled_matrix = special.expit(matrix)
+        #handmade sigmoid function, got overflow errors often so we switched to the scipy function.
+        #scaled_matrix = 1/(1+np.exp(-matrix))
+        scaled_matrix = special.expit(matrix) #scipy.special matrix exponentiation to avoid overflow errors
         return scaled_matrix
 
     def sigmoidGradient(self, matrix):
-        g = np.zeros(np.shape(matrix))
+        sg = np.zeros(np.shape(matrix))
         #inverse of sigmoid is sigmoid*(1-sigmoid)
-        g_z = self.sigmoid(matrix)
-        g = g_z*(1-g_z)
-        return g
+        sigmoid_matrix = self.sigmoid(matrix)
+        sg = sigmoid_matrix*(1-sigmoid_matrix)
+        return sg
 
 if __name__ == '__main__':
+    #Set inputs to learn and test on, then learning rate and number of epochs
     inputfilename = raw_input("Path for NPZ file to Learn on :\n")
     testfilename = raw_input("Path for NPZ file to Test on :\n")
     learning_rate= raw_input("Learning Rate :\n")
@@ -165,12 +165,15 @@ if __name__ == '__main__':
 
     learning_rate=float(learning_rate)
     iterations = int(iterations)
-    # print ("Saving Thetas as Thetas.npz")
     npzfile = np.load(inputfilename)
-    nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities']) #initialize neural net.
-    nn.optimize_net(iterations=iterations) #optimize net through 10 iterations.
-
     testfile = np.load(testfilename)
+
+    #initialize neural net.
+    nn = NeuralNet(learning_rate=learning_rate, images_matrix=npzfile['images_matrix'], input_velocities=npzfile['input_velocities'])
+    #train net with given amount of epochs (iterations)
+    nn.optimize_net(iterations=iterations)
+    #validate net with test set
     nn.test_net(test_images=npzfile['images_matrix'], test_velocities=npzfile['input_velocities'])
 
+    #save optimized theta values into a pickled numpy array. Will be used in robot_controller.py
     np.savez('thetas', theta_1=nn.theta_1, theta_2=nn.theta_2)
