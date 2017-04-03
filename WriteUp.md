@@ -6,7 +6,7 @@ Lauren Gulland, Shruti Iyer, Arpan Rau
 
 
 ## Goal
-The major goal of the project was to use computer vision and machine learning to train our Neato to drive autonomously around an arbitrary tape-marked course. By setting up a neural network to take processed camera data from the neato while under teleoperated human control, we wanted to be able to predict robot wheel velocities based on input camera images when not driven by a human.
+The main goal of the project was to use computer vision and machine learning to train our Neato to drive autonomously around an arbitrary tape-marked course. By setting up a neural network to take processed camera data from the neato while under teleoperated human control, we wanted to be able to predict robot wheel velocities based on input camera images when not driven by a human.
 
 The learning goal of the project was to implement as much as we can by ourselves to try to gain a deep understanding of what actually makes neural nets work. We were far more concerned in this project with implementing a pipeline that we could theoretically use to train our robot to drive than actually training our robot to drive; in other words, we were willing to trade good results for deeper learning.
 
