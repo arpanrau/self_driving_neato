@@ -2,3 +2,5 @@
 Repository for 2017 comprobo open-ended computer vision project. Machine Learning self-driving neato robots.
 
 Bags can be found in [here](https://drive.google.com/drive/folders/0BwXkbvw4LufrYXNITnBvaVBjVTg?usp=sharing). Download and add them to `self_driving_neato/self_driving_neato/bags` directory.
+
+The final writeup for this project can be found [here](https://github.com/arpanrau/self_driving_neato/edit/master/WriteUp.md).
